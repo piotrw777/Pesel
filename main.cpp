@@ -5,6 +5,7 @@
 #include <time.h>
 #include <chrono>
 #include <vector>
+#include <iomanip>
 
 using namespace std;
 
@@ -43,15 +44,10 @@ public:
         string errange = "error range";
         string errleap = "error leap year";
 
-        if(m < 1 || m > 12 || d < 1 || y < 1582) {
-            throw(errange);
-            return false;
-        }
+        if(m < 1 || m > 12 || d < 1 || y < 1582) return false;
         bool leap_year = ( (y % 4 == 0) && (y % 100 != 0) ) | ( y % 400 == 0 );
-        if(d > date::month_days[m] + ( (m == 2) && (leap_year == true) )  ) {
-            throw(errleap);
-            return false;
-        }
+        if(d > date::month_days[m] + ( (m == 2) && (leap_year == true) )  ) return false;
+
         return true;
     }
 
@@ -76,6 +72,7 @@ private:
 };
 
 int date::month_days[13] = {0, 31,28,31, 30,31, 30, 31, 31, 30, 31, 30, 31};
+
 int date::getMonth() const
 {
     return month;
@@ -133,9 +130,13 @@ public:
                                                "Zielona Gora", "Jelenia Gora", "Mount Everest", "Row marianski",
                                                "Wenus", "Ksiezyc", "Most"
                                                }};
-        name = random_names[los(0,N)];
-        surname = random_surnames[los(0,N)];
-        address = random_address[los(0,N)];
+        int name_nr = los(0,N);
+        int surname_nr = los(0,N);
+        int address_nr = los(0,N);
+
+        name = random_names[name_nr];
+        surname = random_surnames[surname_nr];
+        address = random_address[address_nr];
 
         int day_pom, month_pom, year_pom;
         do {
@@ -149,16 +150,6 @@ public:
 
         age = date::current_date().getYear() - Date_Of_Birth.getYear() + 1;
 
-/*
-        try {
-            date::check_date(_day, _month, _year);
-
-        }
-        catch(string s) {
-            cout << "Blad daty: " << s << endl;
-            //exit(3);
-        }
-*/
     }
     const string & get_name() const { return name; }
     const string & get_surname() const { return surname; }
@@ -168,8 +159,18 @@ public:
     const long long & get_pesel() const { return pesel; }
 
     friend ostream & operator<<(ostream &out, const Person & per) {
-        out << per.name << " " << per.surname << ", adres: " << per.address <<
-               ", data ur: " << per.Date_Of_Birth << ", age: " << per.age;
+        int name_surname = per.name.length() + per.surname.length() + 1;
+        auto spacier = [](int n){for(int k = 0; k < n; k++) cout << " ";};
+
+        out << per.name << " " << per.surname;
+        spacier(23 - name_surname);
+
+        out << "adres: " << per.address;
+        spacier(18 - per.address.length());
+
+        out <<"data ur: " << per.Date_Of_Birth;
+        spacier(19 - (per.Date_Of_Birth.getDay() > 9));
+        out << "age: " << per.age;
         return out;
     }
 
@@ -212,8 +213,10 @@ int main()
     for(int k = 0; k < M; k++) {
         persons.push_back(Person(Random{}));
     }
+
     int k = 1;
     for(const auto &i : persons) {
-        cout << k++ <<". " << i << endl;
+        cout << k << ". " << ((k < 10) ? " " : "") << i << endl;
+        k++;
     }
 }
