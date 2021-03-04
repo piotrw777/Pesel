@@ -4,6 +4,7 @@
 #include <array>
 #include <time.h>
 #include <chrono>
+#include <vector>
 
 using namespace std;
 
@@ -37,105 +38,44 @@ public:
     void setMonth(int value);
     int getYear() const;
     void setYear(int value);
-    void check_date();
+
+    static bool check_date(int d, int m, int y) {
+        string errange = "error range";
+        string errleap = "error leap year";
+
+        if(m < 1 || m > 12 || d < 1 || y < 1582) {
+            throw(errange);
+            return false;
+        }
+        bool leap_year = ( (y % 4 == 0) && (y % 100 != 0) ) | ( y % 400 == 0 );
+        if(d > date::month_days[m] + ( (m == 2) && (leap_year == true) )  ) {
+            throw(errleap);
+            return false;
+        }
+        return true;
+    }
+
+    static date current_date() {
+        auto current_date = chrono::system_clock::now();
+        time_t current_time = chrono::system_clock::to_time_t(current_date);
+        struct tm *timeinfo;
+        timeinfo = localtime(&current_time);
+        return date(timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900);
+    }
+
+    friend ostream & operator<<(ostream &out, const date & d) {
+        out << d.getDay() << "." << d.getMonth() << "." <<  d.getYear();
+        return out;
+    }
 
 private:
     int day;
     int month;
     int year;
-    static constexpr int month_days[13] = {0, 31,28,31, 30,31, 30, 31, 31, 30, 31, 30, 31 };
+    static int month_days[13];
 };
 
-
-class Person : public PersonIf {
-public:
-    Person(const string & _name, const string & _surname,
-           const string & _address, int _day, int _month, int _year)
-           : name(_name),
-             surname(_surname),
-             address(_address),
-             Date_Of_Birth(_day, _month, _year)
-    {
-
-
-    }
-    Person(Random) {
-        static const int N = 15;
-        static array<string, N> random_names {{"Piotr", "Tomek", "Bartosz", "Czeslaw",
-                                               "Wincenty", "Ignacy", "Mateusz", "Marcin",
-                                               "Mieczyslaw", "Marek", "Jan", "Eustachy",
-                                               "Kazimierz", "Ludwig", "Adam"
-                                               }};
-        static array<string, N> random_surnames {{"Malinowski", "Kowalski", "Mirislawski", "Kiepski",
-                                               "Graczyk", "Bialy", "Niecny", "Zaluski",
-                                               "Wolny", "Szybki", "Policki", "Wredny",
-                                               "Halny", "Szmalc", "Redy"
-                                               }};
-        static array<string, N> random_address {{"Szczecin", "Krakow", "Warszawa", "Nowy Jork",
-                                               "Waszyngton", "Londyn", "Bielsko-biala", "Zakopane",
-                                               "Zielona Gora", "Jelenia Gora", "Mount Everest", "Row marianski",
-                                               "Wenus", "Księzyc", "Most"
-                                               }};
-
-        name = random_names[los(0,N)];
-        surname = random_surnames[los(0,N)];
-        address = random_address[los(0,N)];
-    }
-    const string & get_name() const { return name; }
-    const string & get_surname() const { return surname; }
-    const string & get_address() const { return address; }
-    const int & get_age() const { return age; }
-    const string & get_date_of_birth() const { return date_of_birth; }
-    const long long & get_pesel() const { return pesel; }
-
-    friend ostream & operator<<(ostream &out, const Person & per) {
-        out << per.name << " " << per.surname << " " << "adres: " << per.address;
-        return out;
-    }
-
-private:
-    string name;
-    string surname;
-    int age;
-    date Date_Of_Birth;
-    string date_of_birth;
-    string address;
-    long long pesel;
-
-};
-
-void hello(int n, const string & str) {
-    for(int k = 0; k < n; k++) {
-        cout << str << "\n";
-    }
-}
-
-int main()
-{
-    auto start = std::chrono::system_clock::now();
-    // Some computation here
-    auto end = std::chrono::system_clock::now();
-
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-
-    std::cout << "finished computation at " << std::ctime(&end_time)
-              << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
-    srand(time(nullptr));
-
-    for(int k = 0; k < 10; k++) {
-        cout << los(3,7) << endl;
-    }
-
-    Person test(Random{});
-    cout << test << endl;
-    thread w1;
-    w1 = thread(hello, 5, "hi!");
-    w1.join();
-    return 0;
-}
-
+int date::month_days[13] = {0, 31,28,31, 30,31, 30, 31, 31, 30, 31, 30, 31};
 int date::getMonth() const
 {
     return month;
@@ -164,4 +104,116 @@ int date::getDay() const
 void date::setDay(int value)
 {
     day = value;
+}
+class Person : public PersonIf {
+public:
+    Person(const string & _name, const string & _surname,
+           const string & _address, int _day, int _month, int _year)
+           : name(_name),
+             surname(_surname),
+             address(_address),
+             Date_Of_Birth(_day, _month, _year)
+    {
+        age = date::current_date().getYear() - Date_Of_Birth.getYear() + 1;
+    }
+    Person(Random) {
+        static const int N = 15;
+        static array<string, N> random_names {{"Piotr", "Tomek", "Bartosz", "Czeslaw",
+                                               "Wincenty", "Ignacy", "Mateusz", "Marcin",
+                                               "Mieczyslaw", "Marek", "Jan", "Eustachy",
+                                               "Kazimierz", "Ludwig", "Adam"
+                                               }};
+        static array<string, N> random_surnames {{"Malinowski", "Kowalski", "Mirislawski", "Kiepski",
+                                               "Graczyk", "Bialy", "Niecny", "Zaluski",
+                                               "Wolny", "Szybki", "Policki", "Wredny",
+                                               "Halny", "Szmalc", "Redy"
+                                               }};
+        static array<string, N> random_address {{"Szczecin", "Krakow", "Warszawa", "Nowy Jork",
+                                               "Waszyngton", "Londyn", "Bielsko-biala", "Zakopane",
+                                               "Zielona Gora", "Jelenia Gora", "Mount Everest", "Row marianski",
+                                               "Wenus", "Ksiezyc", "Most"
+                                               }};
+        name = random_names[los(0,N)];
+        surname = random_surnames[los(0,N)];
+        address = random_address[los(0,N)];
+
+        int day_pom, month_pom, year_pom;
+        do {
+            day_pom = los(1,32);
+            month_pom = los(1,13);
+            year_pom = los(1900, 2021);
+            if(date::check_date(day_pom, month_pom, year_pom))
+            Date_Of_Birth = date(los(1,32), los(1,13), los(1900, 2021));
+        }
+        while(date::check_date(day_pom, month_pom, year_pom) == false);
+
+        age = date::current_date().getYear() - Date_Of_Birth.getYear() + 1;
+
+/*
+        try {
+            date::check_date(_day, _month, _year);
+
+        }
+        catch(string s) {
+            cout << "Blad daty: " << s << endl;
+            //exit(3);
+        }
+*/
+    }
+    const string & get_name() const { return name; }
+    const string & get_surname() const { return surname; }
+    const string & get_address() const { return address; }
+    const int & get_age() const { return age; }
+    const string & get_date_of_birth() const { return date_of_birth; }
+    const long long & get_pesel() const { return pesel; }
+
+    friend ostream & operator<<(ostream &out, const Person & per) {
+        out << per.name << " " << per.surname << ", adres: " << per.address <<
+               ", data ur: " << per.Date_Of_Birth << ", age: " << per.age;
+        return out;
+    }
+
+private:
+    string name;
+    string surname;
+    int age;
+    date Date_Of_Birth;
+    string date_of_birth;
+    string address;
+    long long pesel;
+    void generate_pesel();
+};
+
+void hello(int n, const string & str) {
+    for(int k = 0; k < n; k++) {
+        cout << str << "\n";
+    }
+}
+
+int main()
+{
+    cout << "Dzisiejsza data to: " << date::current_date() << endl;
+    cout << "Dzisiejszy rok to: " << date::current_date().getYear() << endl;
+
+    srand(time(nullptr));
+
+    for(int k = 0; k < 10; k++) {
+        cout << los(3,7) << endl;
+    }
+
+    thread w1;
+    w1 = thread(hello, 5, "hi!");
+    w1.join();
+
+    vector<Person> persons;
+
+    const int M = 10;
+
+    for(int k = 0; k < M; k++) {
+        persons.push_back(Person(Random{}));
+    }
+    int k = 1;
+    for(const auto &i : persons) {
+        cout << k++ <<". " << i << endl;
+    }
 }
