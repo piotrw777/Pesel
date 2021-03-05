@@ -5,7 +5,7 @@
 #include <time.h>
 #include <chrono>
 #include <vector>
-#include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
@@ -13,7 +13,9 @@ int los(int a, int b) {
     double d = 1.0 * rand() / RAND_MAX;
     return static_cast<int>(d * (b - a) + a);
 }
-
+void spacier(int n){
+    for(int k = 0; k < n; k++) cout << " ";
+}
 struct Random {
     Random() {}
 };
@@ -111,7 +113,9 @@ public:
              address(_address),
              Date_Of_Birth(_day, _month, _year)
     {
-        age = date::current_date().getYear() - Date_Of_Birth.getYear() + 1;
+        age = date::current_date().getYear() - Date_Of_Birth.getYear();
+        generate_pesel(_day, _month, _year);
+        generate_date_of_birth(_day, _month,_year);
     }
     Person(Random) {
         static const int N = 15;
@@ -144,12 +148,14 @@ public:
             month_pom = los(1,13);
             year_pom = los(1900, 2021);
             if(date::check_date(day_pom, month_pom, year_pom))
-            Date_Of_Birth = date(los(1,32), los(1,13), los(1900, 2021));
+            Date_Of_Birth = date(day_pom, month_pom, year_pom);
         }
         while(date::check_date(day_pom, month_pom, year_pom) == false);
 
-        age = date::current_date().getYear() - Date_Of_Birth.getYear() + 1;
-
+        age = date::current_date().getYear() - Date_Of_Birth.getYear();
+        generate_pesel(day_pom, month_pom, year_pom);
+        generate_date_of_birth(day_pom, month_pom, year_pom);
+        nr++;
     }
     const string & get_name() const { return name; }
     const string & get_surname() const { return surname; }
@@ -157,20 +163,23 @@ public:
     const int & get_age() const { return age; }
     const string & get_date_of_birth() const { return date_of_birth; }
     const long long & get_pesel() const { return pesel; }
+    int getNr() const { return nr; }
 
     friend ostream & operator<<(ostream &out, const Person & per) {
         int name_surname = per.name.length() + per.surname.length() + 1;
-        auto spacier = [](int n){for(int k = 0; k < n; k++) cout << " ";};
 
         out << per.name << " " << per.surname;
         spacier(23 - name_surname);
 
         out << "adres: " << per.address;
-        spacier(18 - per.address.length());
+        spacier(16 - per.address.length());
 
-        out <<"data ur: " << per.Date_Of_Birth;
-        spacier(19 - (per.Date_Of_Birth.getDay() > 9));
+        out <<"data ur: " << per.get_date_of_birth();
+        spacier(4);
         out << "age: " << per.age;
+        spacier(4 - to_string(per.age).length());
+
+        out << "pesel: " << per.get_pesel();
         return out;
     }
 
@@ -178,16 +187,53 @@ private:
     string name;
     string surname;
     int age;
+    static int nr;
     date Date_Of_Birth;
     string date_of_birth;
     string address;
     long long pesel;
-    void generate_pesel();
+    void generate_pesel(int d, int m, int y)
+    {
+        long long result = los(1e4, 1e5);
+        result += d * 1e5;
+        result += ( m + (y >= 2000)*20  ) * 1e7;
+        result += (y % 100)*1e9;
+        pesel = result;
+    }
+    void generate_date_of_birth(int d, int m, int y)
+    {
+        string result(10, '.');
+        result[0] = d / 10 + '0';
+        result[1] = d % 10 + '0';
+        result[3] = m / 10 + '0';
+        result[4] = m % 10 + '0';
+        result.replace(6, 4, to_string(y));
+        date_of_birth = result;
+    }
 };
+
+int Person::nr = 0;
 
 void hello(int n, const string & str) {
     for(int k = 0; k < n; k++) {
         cout << str << "\n";
+    }
+}
+
+template<typename T, typename F >
+void persons_sort(vector<shared_ptr<T> > &vec, F f) {
+    auto compare = [f](shared_ptr<T> p1, shared_ptr<T> p2) {return ((*p1).*f)() < ((*p2).*f)();};
+    sort(vec.begin(), vec.end(), compare);
+}
+
+template <typename T>
+void print(T t) {
+    int k = 1;
+    for(const auto &i : t) {
+        cout << k << ".";
+        spacier(4- to_string(k).length());
+        cout << *i << endl;
+        k++;
     }
 }
 
@@ -206,17 +252,21 @@ int main()
     w1 = thread(hello, 5, "hi!");
     w1.join();
 
-    vector<Person> persons;
+    vector<shared_ptr<Person> > persons;
+     vector<shared_ptr<Person> > persons_name;
 
-    const int M = 10;
+    const int M = 20;
 
     for(int k = 0; k < M; k++) {
-        persons.push_back(Person(Random{}));
+        persons.push_back(make_shared<Person>(Random{}));
     }
+    persons_name=persons;
 
-    int k = 1;
-    for(const auto &i : persons) {
-        cout << k << ". " << ((k < 10) ? " " : "") << i << endl;
-        k++;
-    }
+    persons_sort(persons_name, &Person::get_name);
+
+    print(persons);
+    print(persons_name);
 }
+
+
+
