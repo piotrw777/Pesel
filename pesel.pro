@@ -4,4 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 QMAKE_CXXFLAGS += -pthread -pedantic-errors  -O2
 SOURCES += \
-        main.cpp
+        date.cpp \
+        main.cpp \
+        person.cpp
+
+HEADERS += \
+    date.h \
+    person.h \
+    pom_functions.h
