@@ -22,6 +22,7 @@ public:
     static date current_date();
 
     friend ostream & operator<<(ostream &out, const date & d);
+    friend bool operator<(const date & d1 ,const date & d2);
 
 private:
     int day;

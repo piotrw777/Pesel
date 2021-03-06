@@ -32,6 +32,7 @@ public:
     const string & get_address() const { return address; }
     const int & get_age() const { return age; }
     const string & get_date_of_birth() const { return date_of_birth; }
+    const date & get_date() const { return Date_Of_Birth; }
     const long long & get_pesel() const { return pesel; }
     int getNr() const { return nr; }
     friend ostream & operator<<(ostream &out, const Person & per);

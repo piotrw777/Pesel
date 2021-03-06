@@ -26,6 +26,12 @@ ostream & operator<<(ostream &out, const date &d) {
     return out;
 }
 
+bool operator<(const date & d1 ,const date & d2) {
+    if(d1.getYear() != d2.getYear()) return d1.getYear() < d2.getYear();
+    if(d1.getMonth() != d2.getMonth()) return d1.getMonth() < d2.getMonth();
+    return d1.getDay() < d2.getDay();
+}
+
 int date::month_days[13] = {0, 31,28,31, 30,31, 30, 31, 31, 30, 31, 30, 31};
 
 int date::getMonth() const
