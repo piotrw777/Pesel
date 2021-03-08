@@ -64,6 +64,7 @@ int main(int argc,  char * argv[] )
 
     cout << "Dzisiejsza data to: " << date::current_date() << endl;
     cout << "Dzisiejszy rok to: " << date::current_date().getYear() << endl;   
+
     map<int, string> task = {{0,"peselu"}, {1, "imieniu"}, {2, "nazwisku"},
                              {3,"adresie"}, {4, "wieku"}, {5, "dacie urodzenia"}};
 //    thread w1;
@@ -98,6 +99,8 @@ int main(int argc,  char * argv[] )
     //4 - wiek
     //5 - date urodzenia
 
+    enum {pesel, imie, nazwisko, adres, wiek, data_urodzenia};
+
     cout << "Przeslane argumenty: \n";
     for(const auto &v : arguments) {
         cout << v << " ";
@@ -111,12 +114,38 @@ int main(int argc,  char * argv[] )
     //tworzymy shared pointery
     persons_date_of_birth=persons_age=persons_address=persons_surname=persons_name=persons_pesel=persons;
     //sortujemy
-    persons_sort(persons_pesel, &Person::get_pesel);
-    persons_sort(persons_name, &Person::get_name);
-    persons_sort(persons_surname, &Person::get_surname);
-    persons_sort(persons_age, &Person::get_age);
-    persons_sort(persons_address, &Person::get_address);
-    persons_sort(persons_date_of_birth, &Person::get_date);
+
+    vector<shared_ptr<Person>> * vecs[6] = {
+        &persons_pesel,
+        &persons_name,
+        &persons_surname,
+        &persons_age,
+        &persons_address,
+        &persons_date_of_birth
+    };
+
+    array<string, 6> names {"pesel", "name", "surname", "address", "age", "date_of_birth"};
+    map<string, decltype (&persons)> vec_map;
+    for(int k = 0; k < 6; k++) {
+        vec_map.emplace(names[k], vecs[k]);
+    }
+
+    vector<thread> vec_thr;
+
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_pesel)>, ref(persons_pesel), &Person::get_pesel));
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_name)>, ref(persons_name), &Person::get_name));
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_surname)>, ref(persons_surname), &Person::get_surname));
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_address)>, ref(persons_address), &Person::get_address));
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_age)>, ref(persons_age), &Person::get_age));
+    vec_thr.push_back(thread(persons_sort<Person, decltype (&Person::get_date)>, ref(persons_date_of_birth), &Person::get_date));
+
+    for(auto & t : vec_thr) t.join();
+//    persons_sort(persons_pesel, &Person::get_pesel);
+//    persons_sort(persons_name, &Person::get_name);
+//    persons_sort(persons_surname, &Person::get_surname);
+//    persons_sort(persons_age, &Person::get_age);
+//    persons_sort(persons_address, &Person::get_address);
+//    persons_sort(persons_date_of_birth, &Person::get_date);
 
     int nr_zad = 1;
     int start_position;
@@ -135,32 +164,35 @@ int main(int argc,  char * argv[] )
         start_position = arguments[k + 1];
         list_len = arguments[k + 2];
 
-        switch (case_nr) {
-        case 0:
-            start_iterator = persons_pesel.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        case 1:
-            start_iterator = persons_name.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        case 2:
-            start_iterator = persons_surname.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        case 3:
-            start_iterator = persons_address.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        case 4:
-            start_iterator = persons_age.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        case 5:
-            start_iterator = persons_date_of_birth.begin() + start_position - 1;
-            print(start_iterator, list_len);
-            break;
-        }
+        start_iterator = vecs[case_nr]->begin() + start_position - 1;
+        print(start_iterator, list_len);
+
+//        switch (case_nr) {
+//        case pesel:
+//            start_iterator = persons_pesel.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        case imie:
+//            start_iterator = persons_name.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        case nazwisko:
+//            start_iterator = persons_surname.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        case adres:
+//            start_iterator = persons_address.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        case wiek:
+//            start_iterator = persons_age.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        case data_urodzenia:
+//            start_iterator = persons_date_of_birth.begin() + start_position - 1;
+//            print(start_iterator, list_len);
+//            break;
+//        }
     }
     cout << "Koniec programu";
 }
