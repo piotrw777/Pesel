@@ -71,8 +71,13 @@ int main(int argc,  char * argv[] )
 //    w1.join();
 
     vector<int> arguments(argc - 2, 0);
-    const int M = atoi(argv[1]);
 
+    int M;
+    if(argc == 1) {
+       cout << "Nie podano argumentow!";
+       exit(1);
+    }
+    M = atoi(argv[1]);
     vector<shared_ptr<Person> > persons;
 
     vector<shared_ptr<Person> > persons_pesel; //0
@@ -157,4 +162,5 @@ int main(int argc,  char * argv[] )
             break;
         }
     }
+    cout << "Koniec programu";
 }
