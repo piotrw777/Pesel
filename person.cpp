@@ -1,8 +1,10 @@
 #include "person.h"
 #include <iostream>
 
+#define ull unsigned long long
+
 int los(int a, int b) {
-    double d = 1.0 * rand() / RAND_MAX;
+    double d = 1.0 * rand() / (static_cast<double>(RAND_MAX) + 1);
     return static_cast<int>(d * (b - a) + a);
 }
 
@@ -38,13 +40,20 @@ Person::Person(Random) {
     static array<string, N> random_address {{"Szczecin", "Krakow", "Warszawa", "Nowy Jork",
             "Waszyngton", "Londyn", "Bielsko-biala", "Zakopane",
             "Zielona Gora", "Jelenia Gora", "Mount Everest", "Row marianski",
-            "Wenus", "Ksiezyc", "Most"
-                                            }};
+            "Wenus", "Ksiezyc", "Most"}};
+
+    auto check_range = [](int n){if(n < 0 || n >= 15) return -5; else return n;};
     int name_nr = los(0,N);
+    if(check_range(name_nr) == -5) cout << "Bad number: " << name_nr << endl;
+
     int surname_nr = los(0,N);
+    if(check_range(surname_nr) == -5) cout << "Bad number: " << surname_nr << endl;
+
     int address_nr = los(0,N);
+    if(check_range(address_nr) == -5) cout << "Bad number: " << address_nr << endl;
 
     name = random_names[name_nr];
+
     surname = random_surnames[surname_nr];
     address = random_address[address_nr];
 
